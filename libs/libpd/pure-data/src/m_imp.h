@@ -28,6 +28,13 @@ typedef void (*t_symbolmethod)(t_pd *x, t_symbol *s);
 typedef void (*t_listmethod)(t_pd *x, t_symbol *s, int argc, t_atom *argv);
 typedef void (*t_anymethod)(t_pd *x, t_symbol *s, int argc, t_atom *argv);
 
+typedef void* (*t_bangmethodr)(t_pd *x);
+typedef void* (*t_pointermethodr)(t_pd *x, t_gpointer *gp);
+typedef void* (*t_floatmethodr)(t_pd *x, t_float f);
+typedef void* (*t_symbolmethodr)(t_pd *x, t_symbol *s);
+typedef void* (*t_listmethodr)(t_pd *x, t_symbol *s, int argc, t_atom *argv);
+typedef void* (*t_anymethodr)(t_pd *x, t_symbol *s, int argc, t_atom *argv);
+
 struct _class
 {
     t_symbol *c_name;                   /* name (mostly for error reporting) */
@@ -57,15 +64,20 @@ struct _class
     char c_patchable;                   /* true if we have a t_object header */
     char c_firstin;                 /* if patchable, true if draw first inlet */
     char c_drawcommand;             /* a drawing command for a template */
+    t_classfreefn c_classfreefn;    /* function to call before freeing class */
 };
+
+/* m_pd.c */
+EXTERN void pd_init_systems(void);
+EXTERN void pd_term_systems(void);
 
 /* m_class.c */
 EXTERN void pd_emptylist(t_pd *x);
 
 /* m_obj.c */
-EXTERN int obj_noutlets(t_object *x);
-EXTERN int obj_ninlets(t_object *x);
-EXTERN t_outconnect *obj_starttraverseoutlet(t_object *x, t_outlet **op,
+EXTERN int obj_noutlets(const t_object *x);
+EXTERN int obj_ninlets(const t_object *x);
+EXTERN t_outconnect *obj_starttraverseoutlet(const t_object *x, t_outlet **op,
     int nout);
 EXTERN t_outconnect *obj_nexttraverseoutlet(t_outconnect *lastconnect,
     t_object **destp, t_inlet **inletp, int *whichp);
@@ -74,16 +86,16 @@ EXTERN t_outconnect *obj_connect(t_object *source, int outno,
 EXTERN void obj_disconnect(t_object *source, int outno, t_object *sink,
     int inno);
 EXTERN void outlet_setstacklim(void);
-EXTERN int obj_issignalinlet(t_object *x, int m);
-EXTERN int obj_issignaloutlet(t_object *x, int m);
-EXTERN int obj_nsiginlets(t_object *x);
-EXTERN int obj_nsigoutlets(t_object *x);
-EXTERN int obj_siginletindex(t_object *x, int m);
-EXTERN int obj_sigoutletindex(t_object *x, int m);
+EXTERN int obj_issignalinlet(const t_object *x, int m);
+EXTERN int obj_issignaloutlet(const t_object *x, int m);
+EXTERN int obj_nsiginlets(const t_object *x);
+EXTERN int obj_nsigoutlets(const t_object *x);
+EXTERN int obj_siginletindex(const t_object *x, int m);
+EXTERN int obj_sigoutletindex(const t_object *x, int m);
 
 /* s_inter.c */
-void pd_globallock( void);
-void pd_globalunlock( void);
+void pd_globallock(void);
+void pd_globalunlock(void);
 
 /* misc */
 #define SYMTABHASHSIZE 1024

@@ -613,12 +613,10 @@ t_int *pow_tilde_perform(t_int *w)
     int n = (int)(w[4]);
     while (n--)
     {
-        float f = *in1++;
-        if (f > 0)
-            *out = pow(f, *in2);
-        else *out = 0;
-        out++;
-        in2++;
+        float f1 = *in1++, f2 = *in2++;
+        *out++ = (f1 == 0 && f2 < 0) ||
+            (f1 < 0 && (f2 - (int)f2) != 0) ?
+                0 : pow(f1, f2);
     }
     return (w+5);
 }
@@ -647,7 +645,7 @@ typedef struct _exp_tilde
     t_float x_f;
 } t_exp_tilde;
 
-static void *exp_tilde_new( void)
+static void *exp_tilde_new(void)
 {
     t_exp_tilde *x = (t_exp_tilde *)pd_new(exp_tilde_class);
     outlet_new(&x->x_obj, &s_signal);
@@ -741,7 +739,7 @@ typedef struct _abs_tilde
     t_float x_f;
 } t_abs_tilde;
 
-static void *abs_tilde_new( void)
+static void *abs_tilde_new(void)
 {
     t_abs_tilde *x = (t_abs_tilde *)pd_new(abs_tilde_class);
     outlet_new(&x->x_obj, &s_signal);

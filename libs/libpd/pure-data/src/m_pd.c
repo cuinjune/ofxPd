@@ -183,7 +183,7 @@ void pd_unbind(t_pd *x, t_symbol *s)
     else pd_error(x, "%s: couldn't unbind", s->s_name);
 }
 
-t_pd *pd_findbyclass(t_symbol *s, t_class *c)
+t_pd *pd_findbyclass(t_symbol *s, const t_class *c)
 {
     t_pd *x = 0;
 
@@ -256,7 +256,7 @@ void pd_popsym(t_pd *x)
     }
 }
 
-void pd_doloadbang( void)
+void pd_doloadbang(void)
 {
     if (lastpopped)
         pd_vmess(lastpopped, gensym("loadbang"), "f", LB_LOAD);
@@ -270,7 +270,10 @@ void pd_bang(t_pd *x)
 
 void pd_float(t_pd *x, t_float f)
 {
-    (*(*x)->c_floatmethod)(x, f);
+    if (x == &pd_objectmaker)
+        ((t_floatmethodr)(*(*x)->c_floatmethod))(x, f);
+    else
+        (*(*x)->c_floatmethod)(x, f);
 }
 
 void pd_pointer(t_pd *x, t_gpointer *gp)
@@ -298,24 +301,37 @@ void obj_init(void);
 void conf_init(void);
 void glob_init(void);
 void garray_init(void);
+void ooura_term(void);
 
 void pd_init(void)
 {
+#ifndef PDINSTANCE
     static int initted = 0;
     if (initted)
         return;
     initted = 1;
-#ifdef PDINSTANCE
+#else
+    if (pd_instances)
+        return;
     pd_instances = (t_pdinstance **)getbytes(sizeof(*pd_instances));
     pd_instances[0] = &pd_maininstance;
     pd_ninstances = 1;
 #endif
+    pd_init_systems();
+}
+
+EXTERN void pd_init_systems(void) {
     mess_init();
     sys_lock();
     obj_init();
     conf_init();
     glob_init();
     garray_init();
+    sys_unlock();
+}
+
+EXTERN void pd_term_systems(void) {
+    sys_lock();
     sys_unlock();
 }
 
